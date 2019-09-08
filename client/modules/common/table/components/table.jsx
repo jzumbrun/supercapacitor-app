@@ -32,8 +32,8 @@ class Table extends Component {
             show: false
         }
 
-        this.event(TableStore, 'getData.success.' + this.props.id, this.onGetDataSuccess.bind(this))
-        this.event(TableStore, 'refresh.' + this.props.id, this.onRefresh.bind(this))
+        this.connect(TableStore, 'getData.success.' + this.props.id, this.onGetDataSuccess.bind(this))
+        this.connect(TableStore, 'refresh.' + this.props.id, this.onRefresh.bind(this))
     }
 
     componentDidMount() {

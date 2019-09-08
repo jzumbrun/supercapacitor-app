@@ -17,7 +17,7 @@ class Forgot extends Component {
                 alerts: []
             }
         }
-        this.event(UserStore, 'forgot.success', this.onForgotSuccess.bind(this))
+        this.connect(UserStore, 'forgot.success', this.onForgotSuccess.bind(this))
     }
 
     onForgotSuccess(){

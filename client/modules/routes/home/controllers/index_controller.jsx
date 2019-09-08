@@ -10,7 +10,7 @@ class Index extends Component {
         UserStore.is('user', true)
         this.state = {}
 
-        this.event(HomeStore, 'getMe.success')
+        this.connect(HomeStore, 'getMe.success')
     }
 
     componentDidMount() {

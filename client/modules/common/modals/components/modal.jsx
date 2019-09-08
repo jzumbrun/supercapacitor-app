@@ -9,9 +9,9 @@ export default class Modal extends Component {
         super(props)
         this.state = {show: false, _zindex: ModalStore.getZIndex()}
 
-        this.event(ModalStore, props.id + '.show', this.showModal.bind(this))
-        this.event(ModalStore, props.id + '.hide', this.hideModal.bind(this))
-        this.event(ModalStore, 'hide', this.hideModal.bind(this))
+        this.connect(ModalStore, props.id + '.show', this.showModal.bind(this))
+        this.connect(ModalStore, props.id + '.hide', this.hideModal.bind(this))
+        this.connect(ModalStore, 'hide', this.hideModal.bind(this))
     }
 
     showModal (options) {

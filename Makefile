@@ -3,78 +3,90 @@ help:
 	@echo "Welcome to supercapacitor's build command center"
 	@echo "----------------------------------------"
 	@echo ""
-	@echo "help             Show this list."
-	@echo "install          Install locally."
-	@echo "pack             Pack the client for production."
-	@echo "pack-dev         Pack the client for development and watch files."
-	@echo "stop-pack-dev    Stop all webpack services."
-	@echo "start-vagrant    Start vagrant."
-	@echo "stop-vagrant     Stop vagrant."
-	@echo "restart-dev      Restart the dev server."
-	@echo "show-status      Show pm2 status."
-	@echo "show-logs        Show server logs."
-	@echo "clear-logs       Clear all server logs."
-	@echo "start-dev        Start the dev server, webpack."
-	@echo "stop-dev         Stop the dev server."
-	@echo "commit           Pack and commit codez to repo."
-	@echo "update           Update supercapacitor module."
+	@echo "help                       Show this list."
+	@echo "install                    Install locally."
+	@echo ""
+	@echo "pack"
+	@echo "    pack/dev               Pack the client for development and watch files."
+	@echo "    pack/vendor            Pack the client vendor files."
+	@echo "    pack/stop              Stop all webpack services."
+	@echo ""
+	@echo "vagrant"
+	@echo "    vagrant/start          Start vagrant."
+	@echo "    vagrant/stop           Stop vagrant."
+	@echo ""
+	@echo "server"
+	@echo "    server/restart         Restart the dev server."
+	@echo "    server/status          Show pm2 status."
+	@echo "    server/logs            Show server logs."
+	@echo "    server/clear           Clear all server logs."
+	@echo "    server/start           Start the dev server, webpack."
+	@echo "    server/stop            Stop the dev server."
+	@echo ""
+	@echo "code"
+	@echo "    code/commit            Pack and commit codez to repo."
+	@echo "    code/update            Update supercapacitor module."
 	@echo ""
 	@echo "----------------------------------------"
-	@echo "To get started run: make start-dev"
+	@echo "To get started run: make server/start"
 	@echo ""
 
 
-install: 
-	@make npm install webpack -g
-	@make start-vagrant
+install:
+	@npm install webpack -g
+	@make vagrant/start
 	@cd ./server && npm ci
 	@cd ./client && npm ci
-	@make start-dev
+	@make server/start
 
-pack:
+pack/prod:
 	@echo 'Packing production...'
 	@cd ./client && webpack --env=production
 
-pack-dev:
+pack/dev:
 	@echo 'Packing development and watching files...'
 	@cd ./client && webpack --env=development -w
 
-stop-pack-dev:
+pack/vendor:
+	@echo 'Packing vendor...'
+	@cd ./client && webpack --config webpack.dll.js --env=production
+
+pack/stop:
 	@echo 'Stopping webpack services...'
 	-@killall webpack
 
-start-vagrant:
+vagrant/start:
 	@echo 'Starting vagrant...'
 	@vagrant up
 
-stop-vagrant:
+vagrant/stop:
 	@echo 'Stopping vagrant...'
 	-@vagrant suspend
 
-show-status:
+server/status:
 	@vagrant ssh -c 'cd /var/www/supercapacitor-app && pm2 status'
 
-show-logs:
+server/logs:
 	@vagrant ssh -c 'cd /var/www/supercapacitor-app && pm2 log'
 
-clear-logs:
+server/clear:
 	@echo 'Clearing all logs...'
 	@echo > ./logs/server.log
 
-start-dev: start-vagrant restart-dev pack-dev
+server/start: vagrant/start server/restart pack/dev
 	@echo 'Dev server started. Visit localhost:7777'
 
-restart-dev:
+server/restart:
 	@echo 'Starting/Restarting express server...'
 	@vagrant ssh -c 'cd /var/www/supercapacitor-app && pm2 start dev.json'
 
-stop-dev: stop-vagrant stop-pack-dev clear-logs
+server/stop: vagrant/stop pack/stop server/clear
 	@echo 'Stopped dev server and related services.'
 
-commit: pack
+code/commit: pack/prod
 	@git commit -am "$(mess)"
 	@git push
 
-update:
+code/update:
 	@cd ./client && npm install --save supercapacitor
-	@make pack-dev
+	@make pack/dev
