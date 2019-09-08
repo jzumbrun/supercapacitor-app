@@ -1,0 +1,113 @@
+#!/bin/bash
+
+usage(){
+cat << EOF
+usage: $0 options
+
+This please choose which provision to run.
+
+OPTIONS:
+   -h      Show this message
+   -s      Site
+   -e      Environment
+EOF
+}
+
+begin(){
+	export site='supercapacitor-app'
+	export log='/tmp/deploy.log'	
+	export enviroment='production'
+
+	#exec 2 >> $log
+
+	touch $log
+	echo > $log # clear log
+	  
+	local OPTIND
+	while getopts ":hs:p:e:" opt; do
+  		case "${opt}" in
+    		h)
+				usage
+				exit 1
+				;;
+      		s)
+				message "Site set to: ${OPTARG}"
+      			;;
+      		e)
+				message "Environment set to: ${OPTARG}"
+				;;
+   			\?)
+      			message "Invalid option: -${OPTARG}"
+      			usage
+				exit 1
+      			;;
+    		:)
+      			message "Option -${OPTARG} requires an argument."
+      			usage
+				exit 1
+      			;;
+  		esac
+	done
+	shift $(( OPTIND - 1 ));
+}
+
+log() {
+	echo "$1" >> $log
+}
+
+message() {
+	echo "$1"
+	echo "$1" >> $log
+}
+
+deployEnv(){
+	message '[+] Adding .env'
+	# Add .env
+	if [ ! -f .env ]; then
+		echo "module.exports='production'" > .env
+		message '[!] Added .env'
+	else
+		message '[-] .env already exists'
+	fi
+}
+
+deployNPM(){
+	message '[+] Pruning npm'
+	cd server
+	npm prune
+	message '[!] npm pruned'
+
+	message '[+] Deduping npm'
+	npm dedupe
+	message '[!] npm deduped'
+
+	message '[+] Installing npm'
+	npm install
+	message '[!] npm installed'
+	cd ..
+}
+
+deployPM2(){
+	message '[+] Start/Restarting pm2'
+	pm2 startOrGracefulReload ecosystem.config.js --env production
+	message '[!] pm2 running'
+}
+
+deploy(){
+	message '[+] Deploying...'
+	deployEnv
+	deployNPM
+	deployPM2
+}
+
+end(){
+	message '[!] Deploy Complete [!]'
+	exit 0
+}
+
+# calls
+begin "$@"
+
+deploy
+
+end

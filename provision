@@ -1,0 +1,219 @@
+#!/bin/bash
+
+usage(){
+cat << EOF
+usage: $0 options
+
+This please choose which provision to run.
+
+OPTIONS:
+   -h      Show this message
+   -s      Site
+   -e      Environment
+EOF
+}
+
+begin(){
+    export site='supercapacitor-app'
+    export log='/tmp/provision.log'	
+    export environment='vagrant'
+    export home='/root'
+
+    touch $log
+    echo > $log # clear log
+      
+    local OPTIND
+    while getopts ":hs:p:e:" opt; do
+        case "${opt}" in
+            h)
+                usage
+                exit 1
+                ;;
+            s)
+                message "Site set to: ${OPTARG}"
+                ;;
+            e)
+                message "Environment set to: ${OPTARG}"
+                environment=( ${OPTARG} )
+                ;;
+            \?)
+                message "Invalid option: -${OPTARG}"
+                usage
+                exit 1
+                ;;
+            :)
+                message "Option -${OPTARG} requires an argument."
+                usage
+                exit 1
+                ;;
+            esac
+    done
+    shift $(( OPTIND - 1 ));
+}
+
+log() {
+    echo "$1" >> $log
+}
+
+message() {
+    echo "$1"
+    echo "$1" >> $log
+}
+
+is_installed() {
+    if which "$1" > /dev/null; then
+        true
+    else
+        false
+    fi
+}
+
+install() {
+    if ! is_installed "$1"; then
+        apt-get install --yes --force-yes "$1" >> $log
+        message "[+] installed $1"
+    else
+        message "[-] $1 already installed"
+    fi
+}
+
+setHome(){
+    if [ "$environment" = "vagrant" ]; then
+        home='/home/vagrant'
+    fi
+
+    message "[+] home set to $home"
+}
+
+provisionSwap(){
+    if ! swapon -s | grep /swapfile > /dev/null; then 
+        message '[+] Provisioning swap'
+        dd if=/dev/zero of=/swapfile bs=1024 count=256k >> $log
+        mkswap /swapfile >> $log
+        swapon /swapfile >> $log
+        echo '/swapfile       none    swap    sw      0       0' >> /etc/fstab
+        echo 10 | tee /proc/sys/vm/swappiness
+        echo vm.swappiness = 10 | tee -a /etc/sysctl.conf
+        chown root:root /swapfile 
+        chmod 0600 /swapfile
+        message '[!] swap provisioned'
+    else
+        message '[-] swap already provisioned'
+    fi
+}
+
+provisionApt(){
+    message '[+] Provisioning apt'
+    apt-get update >> $log
+    message '[!] apt provisioned'
+}
+
+provisionWWW(){
+    message '[+] Adding www'
+    if [ ! -d /var/www ]; then
+        mkdir /var/www
+        message '[!] www added'
+    else
+        message '[-] www already exists'
+    fi
+
+    message "[!] Adding /var/www/$site"
+    if [ ! -d "/var/www/$site" ]; then
+        mkdir "/var/www/$site"
+        message "[!] Added /var/www/$site"
+    else
+        message "[-] /var/www/$site already exists"
+    fi
+}
+
+provisionGit(){
+    message '[+] Provisioning git'
+    install git
+}
+
+provisionNode(){
+    message '[+] Provisioning nodejs'
+    if ! is_installed node; then
+        message '[+] Installing nodejs'
+        wget --quiet https://nodejs.org/dist/v12.10.0/node-v12.10.0-linux-x64.tar.xz >> $log
+        tar -C /usr/local --strip-components 1 -xJf node-v12.10.0-linux-x64.tar.xz >> $log
+        message '[!] nodejs installed'
+    else
+        message '[-] nodejs already installed'
+    fi
+    
+}
+
+provisionPM2(){
+    message '[+] Provisioning pm2'
+    if ! is_installed pm2; then
+        message '[+] Installing pm2'
+        npm install pm2 -g >> $log
+        pm2 startup ubuntu >> $log
+        message '[!] pm2 installed'
+    else
+        message '[-] pm2 already installed'
+    fi
+}
+
+provisionMongoDB(){
+    if [ "$environment" != "development" ] && [ "$environment" != "vagrant" ]; then
+        message '[-] mongoDB ignored'
+        return;
+    fi
+
+    message '[+] Provisioning mongoDB'
+    if ! is_installed mongod; then
+        message '[+] Installing mongoDB'
+        apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 68818C72E52529D4 >> $log
+        echo "deb http://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
+        provisionApt # yes again
+        message '[+] Installing mongoDB modules...'
+        install mongodb-org
+
+cat > /etc/systemd/system/mongodb.service << EOL
+[Unit]
+Description=High-performance, schema-free document-oriented database
+After=network.target
+
+[Service]
+User=mongodb
+ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+        systemctl start mongodb >> $log
+        systemctl enable mongodb >> $log
+        ufw allow 27017
+        message '[!] mongoDB installed and started'
+    else
+        message '[-] mongoDB already installed'
+    fi
+}
+
+provision(){
+
+    message '[+] Provisioning...'
+    setHome
+    provisionSwap
+    provisionApt
+    provisionWWW
+    provisionGit
+    provisionNode
+    provisionPM2
+    provisionMongoDB
+}
+
+end(){
+    message '[!] Provision Complete [!]'
+    exit 0
+}
+
+# calls
+begin "$@"
+
+provision
+
+end

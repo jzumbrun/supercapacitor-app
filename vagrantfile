@@ -1,0 +1,17 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-18.04"
+  config.vm.network :forwarded_port, guest: 7777, host: 7777 # App
+  config.vm.network :forwarded_port, guest: 7443, host: 7443 # App
+  config.vm.network :forwarded_port, guest: 2717, host: 2717 # mongodb
+  config.vm.network :forwarded_port, guest: 5858, host: 5858 # node inspect
+  config.vm.provision "shell", path: "provision", args: ENV['SHELL_ARGS'] # type -- SHELL_ARGS='-h' vagrant provision -- to use
+  config.vm.network "private_network", type: "dhcp" # , ip: "192.168.50.4", auto_config, false
+  config.vm.synced_folder "~/Projects/supercapacitor-app", "/var/www/supercapacitor-app", type: "nfs"
+
+  config.vm.provider :virtualbox do |vb|
+    vb.customize ["modifyvm", :id, "--rtcuseutc", "on", "--memory", "512", "--cpus", "1", "--natdnshostresolver1", "on"]
+  end
+end

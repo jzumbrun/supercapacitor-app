@@ -1,0 +1,10 @@
+{
+  "apps" : [{
+    "name"               : "supercapacitor-app",
+    "script"             : "server/supercapacitor.js",
+    "node_args"          : ["--inspect=0.0.0.0:5858"],
+    "exec_mode"          : "fork",
+    "max_memory_restart" : "100M",
+    "merge_logs"         : true
+  }]
+}
