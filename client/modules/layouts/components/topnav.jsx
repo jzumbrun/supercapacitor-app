@@ -46,7 +46,7 @@ class TopNav extends React.Component {
                 <div className="container">
                     <div className="navbar-header">
                         <a className="navbar-brand" href="#">
-                            Supercapacitor
+                            <img src="/assets/images/logo.svg" />
                         </a>
                     </div>
                     {!this.state.current._id &&

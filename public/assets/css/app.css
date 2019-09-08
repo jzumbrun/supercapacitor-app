@@ -189,6 +189,9 @@ select[multiple] {
 
     .navbar-brand > img {
         display: inline;
+        width: 277px;
+        height: 45px;
+        margin-top: -5px;
     }
 
 .navbar-header {
