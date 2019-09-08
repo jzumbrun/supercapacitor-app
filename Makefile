@@ -68,7 +68,7 @@ restart-dev:
 	@echo 'Starting/Restarting express server...'
 	@vagrant ssh -c 'cd /var/www/supercapacitor-app && pm2 start dev.json'
 
-stop-dev: stop-domain stop-vagrant stop-pack-dev clear-logs
+stop-dev: stop-vagrant stop-pack-dev clear-logs
 	@echo 'Stopped dev server and related services.'
 
 commit: pack
