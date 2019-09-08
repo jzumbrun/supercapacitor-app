@@ -41,7 +41,7 @@
     "react-router": "4.3.1",
     "react-router-dom": "4.3.1",
     "react-test-renderer": "15.4.2",
-    "supercapacitor": "^0.2.5",
+    "supercapacitor": "^0.2.7",
     "uglify-es": "3.3.9",
     "uglifyjs-webpack-plugin": "1.2.7",
     "underscore": "1.8.3"
