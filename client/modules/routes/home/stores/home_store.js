@@ -15,13 +15,13 @@ class HomeStore extends Store {
         this.request('get', `/home/${UserStore.current._id}/me`, 'getMe.success')
 
         // OR call this:
-        this.get(`/home/${UserStore.current._id}/me`)
-        .then((res) => {
-            // Set server state to store state or pass it to the emit
-            this.setState(res.data) /* option 1 */
-            this.emit('getMe.success', res.data /* option 2 */)
-        })
-        .catch(this.emitRequestError.bind(this))
+        // this.get(`/home/${UserStore.current._id}/me`)
+        // .then((res) => {
+        //     // Set server state to store state or pass it to the emit
+        //     this.setState(res.data) /* option 1 */
+        //     this.emit('getMe.success', res.data /* option 2 */)
+        // })
+        // .catch(this.emitRequestError.bind(this))
     }
 
 }
