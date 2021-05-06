@@ -44,7 +44,7 @@
     "supercapacitor": "^0.2.7",
     "uglify-es": "3.3.9",
     "uglifyjs-webpack-plugin": "1.2.7",
-    "underscore": "1.8.3"
+    "underscore": "1.12.1"
   },
   "devDependencies": {
     "webpack": "^4.39.3",
