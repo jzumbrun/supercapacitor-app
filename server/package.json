@@ -34,7 +34,7 @@
     "minimist": "1.2.0",
     "moment": "^2.24.0",
     "moment-timezone": "0.5.13",
-    "mongoose": "4.4.17",
+    "mongoose": "4.13.21",
     "multer": "^1.4.2",
     "nodemailer": "2.4.2"
   },
